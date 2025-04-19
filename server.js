@@ -4,6 +4,17 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const { formatInTimeZone } = require('date-fns-tz');
+const cors = require('cors');
+
+const allowedOrigins = [
+  'https://fdesign-5r4izh30c-taeguns-projects.vercel.app', // 네 프론트엔드 주소
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+}));
 
 dotenv.config();
 const app = express();
