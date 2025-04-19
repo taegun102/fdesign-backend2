@@ -59,6 +59,7 @@ app.post('/generate', async (req, res) => {
     const prediction = await predictionRes.json();
 
     if (!prediction?.urls?.get || !prediction?.id) {
+      console.error('❌ 예측 요청 실패:', prediction);
       return res.status(500).json({ error: '예측 ID를 받지 못했습니다.' });
     }
 
