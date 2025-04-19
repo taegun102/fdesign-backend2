@@ -1,20 +1,8 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const { formatInTimeZone } = require('date-fns-tz');
-const cors = require('cors');
-
-const allowedOrigins = [
-  'https://fdesign-5r4izh30c-taeguns-projects.vercel.app', // 네 프론트엔드 주소
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
 
 dotenv.config();
 const app = express();
@@ -24,7 +12,7 @@ app.use(express.json());
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const VERSION_ID = '55a41a6a19205f74a3ee0ec4186972fefe4039c8598c701a7a24afd45bcb127b';
 
-const generatedToday = {}; // uid별 생성 기록
+const generatedToday = {};
 
 const getKoreanDateString = () => {
   const now = new Date();
@@ -52,9 +40,7 @@ app.post('/generate', async (req, res) => {
   }
 
   if (record.count >= 5) {
-    return res.status(403).json({
-      error: '이미지 생성 제한을 초과했습니다.',
-    });
+    return res.status(403).json({ error: '이미지 생성 제한을 초과했습니다.' });
   }
 
   try {
@@ -70,7 +56,15 @@ app.post('/generate', async (req, res) => {
       }),
     });
 
-    const prediction = await predictionRes.json();
+    const rawText = await predictionRes.text();
+    console.log('🔍 Replicate 응답 원본:', rawText);
+
+    let prediction;
+    try {
+      prediction = JSON.parse(rawText);
+    } catch (err) {
+      return res.status(500).json({ error: 'Replicate 응답 파싱 실패', raw: rawText });
+    }
 
     if (!prediction?.urls?.get || !prediction?.id) {
       return res.status(500).json({ error: '예측 ID를 받지 못했습니다.' });
@@ -101,7 +95,6 @@ app.post('/generate', async (req, res) => {
       return res.status(500).json({ error: '이미지 응답 없음' });
     }
 
-    // 성공 시 카운트 +1
     record.count += 1;
     generatedToday[uid] = record;
 
