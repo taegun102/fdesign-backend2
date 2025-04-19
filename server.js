@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -12,7 +13,7 @@ app.use(express.json());
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const VERSION_ID = '55a41a6a19205f74a3ee0ec4186972fefe4039c8598c701a7a24afd45bcb127b';
 
-const generatedToday = {};
+const generatedToday = {}; // uid별 생성 기록
 
 const getKoreanDateString = () => {
   const now = new Date();
@@ -40,7 +41,9 @@ app.post('/generate', async (req, res) => {
   }
 
   if (record.count >= 5) {
-    return res.status(403).json({ error: '이미지 생성 제한을 초과했습니다.' });
+    return res.status(403).json({
+      error: '이미지 생성 제한을 초과했습니다.',
+    });
   }
 
   try {
@@ -59,7 +62,6 @@ app.post('/generate', async (req, res) => {
     const prediction = await predictionRes.json();
 
     if (!prediction?.urls?.get || !prediction?.id) {
-      console.error('❌ 예측 요청 실패:', prediction);
       return res.status(500).json({ error: '예측 ID를 받지 못했습니다.' });
     }
 
@@ -88,6 +90,7 @@ app.post('/generate', async (req, res) => {
       return res.status(500).json({ error: '이미지 응답 없음' });
     }
 
+    // 성공 시 카운트 +1
     record.count += 1;
     generatedToday[uid] = record;
 
